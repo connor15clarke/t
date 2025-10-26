@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Jobs generatedAt="2025-10-24T15:05:21+00:00" schemaVersion="1.0">
-  </Job>
   <Job id="651bdc71-d935-4a82-b3dd-6cf69b91c403" state="CO" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:11+00:00">
     <JobTitle>ASSISTANT COACH, HIGH SCHOOL</JobTitle>
     <JobDescription/>
@@ -6364,4 +6363,4 @@
     <EmployerFullName> Hoehne School District</EmployerFullName>
     <CompanyName>Aguilar Reorganized D6</CompanyName>
   </Job>
-</Job>
+</Jobs>
