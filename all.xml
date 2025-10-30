@@ -7631,7 +7631,8 @@
     <CompanyEmail></CompanyEmail>
     <CompanyName>Gilbert Public Schools</CompanyName>
   </Job>
-  <JobTitle>Instructional Coach</JobTitle>
+  <Job id="bba1a209-ffaf-461c-8260-52fda2c08176" state="TN" district="Rutherford County" districtId="Rutherford County" active="true" lastSeen="2025-10-30T03:21:43+00:00"> 
+    <JobTitle>Instructional Coach</JobTitle>
     <JobDescription></JobDescription>
     <JobType></JobType>
     <Location>Smyrna, TN, USA | Smyrna High</Location>
@@ -7652,7 +7653,7 @@
     <CompanyDescription>Rutherford County coaching jobs</CompanyDescription>
     <CompanyEmail></CompanyEmail>
     <CompanyName>Rutherford County</CompanyName>
-  </Jobs>
+  </Job>
   <Job id="1105a276-b7de-42b3-9f02-45d9de98fc15" state="TN" district="Clarksville-Mongomery County" districtId="Clarksville-Mongomery County" active="true" lastSeen="2025-10-30T03:23:46+00:00">
     <JobTitle>Assistant Boy's Basketball Coach (100%)-NEMS-*Position available October 2025* (RR-142531)</JobTitle>
     <JobDescription></JobDescription>
