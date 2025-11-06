@@ -20,6 +20,29 @@
 <CompanyEmail/>
 <CompanyName>Denver Public Schools</CompanyName>
 </Job>
+<Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="true" lastSeen="2025-11-05T19:55:33+00:00">
+   <JobTitle>Jumps Coach</JobTitle>
+   <JobDescription>N/A</JobDescription>
+   <JobType>N/A</JobType>
+   <Location>Regis Jesuit High School</Location>
+   <City></City>
+   <State>Colorado</State>
+   <Country>USA</Country>
+   <ZipCode></ZipCode>
+   <Experience></Experience>
+   <SalaryRange></SalaryRange>
+   <Benefits></Benefits>
+   <PostingDate>11-05-2025</PostingDate>
+   <ClosingDate></ClosingDate>
+   <JobUrl>https://chsaanow.com/sports/2022/8/26/GEN_0826221327.aspx</JobUrl>
+   <ApplyUrl>https://chsaanow.com/sports/2022/8/26/GEN_0826221327.aspx</ApplyUrl>
+   <CoachSearchUrl>https://chsaanow.com/sports/2022/8/26/GEN_0826221327.aspx</CoachSearchUrl>
+   <EmployerEmail>Edryse Kelly</EmployerEmail>
+   <EmployerFullName>Regis Jesuit High School</EmployerFullName>
+   <CompanyDescription>Colorado coaching jobs</CompanyDescription>
+   <CompanyEmail></CompanyEmail>
+   <CompanyName>Colorado</CompanyName>
+</Job>
 <Job id="3e236be5-9e80-4af3-b1a8-39838a387a2e" state="CO" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:12+00:00">
 <JobTitle>GIRLS BASKETBALL, ASSISTANT COACH</JobTitle>
 <JobDescription/>
