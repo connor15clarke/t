@@ -1,25 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Jobs generatedAt="2025-10-24T15:05:21+00:00" schemaVersion="1.0">
-<Job id="651bdc71-d935-4a82-b3dd-6cf69b91c403" state="CO" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:11+00:00">
-<JobTitle>ASSISTANT COACH, HIGH SCHOOL</JobTitle>
-<JobDescription/>
-<JobType/>
-<Location/>
-<City>Denver</City>
-<State>Colorado</State>
-<Country/>
-<ZipCode/>
-<Experience/>
-<SalaryRange/>
-<Benefits/>
-<JobUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/job/75807/?keyword=Coach&amp;mode=location</JobUrl>
-<ApplyUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/job/75807/?keyword=Coach&amp;mode=location</ApplyUrl>
-<CoachSearchUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/jobs?keyword=Coach&amp;mode=location</CoachSearchUrl>
-<EmployerFullName>Thomas Jefferson High School</EmployerFullName>
-<CompanyDescription/>
-<CompanyEmail/>
-<CompanyName>Denver Public Schools</CompanyName>
-</Job>
 <Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="true" lastSeen="2025-11-05T19:55:33+00:00">
    <JobTitle>Jumps Coach</JobTitle>
    <JobDescription>N/A</JobDescription>
@@ -42,6 +22,26 @@
    <CompanyDescription>Colorado coaching jobs</CompanyDescription>
    <CompanyEmail></CompanyEmail>
    <CompanyName>Colorado</CompanyName>
+</Job>
+<Job id="651bdc71-d935-4a82-b3dd-6cf69b91c403" state="CO" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:11+00:00">
+<JobTitle>ASSISTANT COACH, HIGH SCHOOL</JobTitle>
+<JobDescription/>
+<JobType/>
+<Location/>
+<City>Denver</City>
+<State>Colorado</State>
+<Country/>
+<ZipCode/>
+<Experience/>
+<SalaryRange/>
+<Benefits/>
+<JobUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/job/75807/?keyword=Coach&amp;mode=location</JobUrl>
+<ApplyUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/job/75807/?keyword=Coach&amp;mode=location</ApplyUrl>
+<CoachSearchUrl>https://dpsjobboard.dpsk12.org/en/sites/CX_1001/jobs?keyword=Coach&amp;mode=location</CoachSearchUrl>
+<EmployerFullName>Thomas Jefferson High School</EmployerFullName>
+<CompanyDescription/>
+<CompanyEmail/>
+<CompanyName>Denver Public Schools</CompanyName>
 </Job>
 <Job id="3e236be5-9e80-4af3-b1a8-39838a387a2e" state="CO" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:12+00:00">
 <JobTitle>GIRLS BASKETBALL, ASSISTANT COACH</JobTitle>
