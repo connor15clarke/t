@@ -630,46 +630,189 @@ def main():
     parser = argparse.ArgumentParser(
         description="Scrape coaching jobs from district career pages for given states."
     )
-    parser.add_argument(
-        'states',
-        metavar='STATE',
-        type=str,
-        nargs='+',  # 1 or more states
-        help='One or more state abbreviations to process (e.g., "CO" "TX" "AZ")'
-    )
-    parser.add_argument(
-        '--data_dir',
-        type=str,
-        default='data',
-        help='Base directory containing state CSV files (default: "data")'
-    )
-    parser.add_argument(
-        '-l', '--limit',
-        type=int,
-        default=None,
-        help='Limit to the first N districts (e.g., --limit 5)'
-    )
-    parser.add_argument(
-        '--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO',
-        help='Logging level (default: INFO)'
-    )
-    parser.add_argument(
-        '-v', '--verbose', action='store_true',
-        help='Shortcut for --log-level DEBUG'
-    )
-    parser.add_argument(
-        '--debug-dump-dir', type=str, default=os.getenv("DEBUG_DUMP_DIR", "").strip() or None,
-        help='Optional directory to dump model turns and candidates.'
-    )
-    parser.add_argument(
-        '--fields', type=str, default=None,
-        help='Comma-separated field keys for extraction/writing (e.g., "job_title,job_description,posting_date,closing_date")'
-    )
+    # --- inputs & common flags ---
+    parser.add_argument('states', metavar='STATE', type=str, nargs='+',
+                        help='One or more state abbreviations to process (e.g., "CO" "TX" "AZ")')
+    parser.add_argument('--data_dir', type=str, default='data',
+                        help='Base directory containing state CSV files (default: "data")')
+    parser.add_argument('-l', '--limit', type=int, default=None,
+                        help='Limit to the first N districts/URLs (e.g., --limit 5)')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'], default='INFO',
+                        help='Logging level (default: INFO)')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Shortcut for --log-level DEBUG')
+    parser.add_argument('--debug-dump-dir', type=str, default=os.getenv("DEBUG_DUMP_DIR", "").strip() or None,
+                        help='Optional directory to dump model turns and candidates.')
+    parser.add_argument('--fields', type=str, default=None,
+                        help='Comma-separated field keys for extraction/writing '
+                             '(e.g., "job_title,job_description,posting_date,closing_date")')
+
+    # --- escalation + rescrape flags (wired up below) ---
+    parser.add_argument('--rescrape', action='store_true',
+                        help='Rescrape mode: revisit known Apply URLs and escalate only if content changed.')
+    parser.add_argument('--footprints-db', type=str, default=os.getenv("FOOTPRINTS_DB", "cbnew/footprints.sqlite"),
+                        help='SQLite path for per-URL fingerprints & run summaries.')
+    parser.add_argument('--vision-order', type=str, default=os.getenv("VISION_ORDER", "paddle,azure,gemini"),
+                        help='Escalation order, comma-separated (e.g., "paddle,azure,gemini").')
+    parser.add_argument('--enable-paddle', action='store_true', help='Enable PaddleOCR stage')
+    parser.add_argument('--enable-azure', action='store_true', help='Enable Azure OCR stage')
+    parser.add_argument('--enable-gemini', action='store_true', help='Enable Gemini stage')
+    parser.add_argument('--preset', type=str, default=None,
+                        help='One of: paddle | azure | gemini | paddle+azure | paddle+gemini | azure+gemini | all')
+
     args = parser.parse_args()
-    # Parse field mask from CLI (comma-separated)
+    if args.verbose:
+        args.log_level = 'DEBUG'
+
+    # --- interpret presets (matrix testing you requested) ---
+    if args.preset:
+        p = args.preset.lower()
+        args.enable_paddle = 'paddle' in p
+        args.enable_azure  = 'azure'  in p
+        args.enable_gemini = 'gemini' in p
+    else:
+        # default: if no flags, enable all; otherwise respect explicit flags
+        if not any([args.enable_paddle, args.enable_azure, args.enable_gemini]):
+            args.enable_paddle = args.enable_azure = args.enable_gemini = True
+
+    order = [s.strip() for s in (args.vision_order.split(",") if args.vision_order else []) if s.strip()]
+
+    # --- field mask from CLI or defaults ---
     fields_mask = [f.strip() for f in (args.fields.split(',') if args.fields else []) if f.strip()] or DEFAULT_EXTRACT_FIELDS
 
     setup_logging(level=args.log_level, verbose=args.verbose)
+    logger.info("Args: %s", vars(args))
+
+    # ----------------------------
+    # RESCRAPE MODE (cheap-first OCR; escalate only when needed)
+    # ----------------------------
+    if args.rescrape:
+        # Local imports so you don’t have to change file-level imports:
+        from .vision_router import VisionRouter, RouterConfig  # escalation orchestrator (Paddle→Azure→Gemini)
+        from .footprints import Footprints                    # per-URL text/image fingerprints
+
+        # Init footprints DB + router
+        fp = Footprints(args.footprints_db)
+        router = VisionRouter(
+            fpdb=fp,
+            cfg=RouterConfig(
+                enable_paddle=args.enable_paddle,
+                enable_azure=args.enable_azure,
+                enable_gemini=args.enable_gemini,
+                order=order or ["paddle", "azure", "gemini"]
+            )
+        )
+
+        # Open one browser for the whole run (fastest)
+        with sync_playwright() as pw:
+            browser = BrowserAgent(pw)
+            try:
+                for state_abbrev in args.states:
+                    state = state_abbrev.strip().upper()
+                    # Open existing state XML (or create if missing)
+                    out_path = f"cbnew/out/AAAAA{state}.xml"
+                    writer = JobsXML(
+                        path=out_path,
+                        field_mask=set(fields_mask) | {
+                            'job_url', 'coach_search_url', 'company_name',
+                            'employer_full_name', 'employer_email', 'sport', 'job_title', 'state'
+                        }
+                    )
+
+                    seen_apply = list(writer.seen_apply_urls())  # canonicalized Apply URLs already in XML  :contentReference[oaicite:3]{index=3}
+                    if args.limit:
+                        seen_apply = seen_apply[: args.limit]
+                    logger.info("Rescrape %s: %d known Apply URLs.", state, len(seen_apply))
+
+                    for apply_url in seen_apply:
+                        try:
+                            browser.goto(apply_url)
+                            shot = browser.screenshot_bytes()
+
+                            # Final stage (Gemini) extractor: single-turn "detail page" pull, no navigation
+                            def _extract_with_gemini() -> Dict[str, Any]:
+                                goal = (
+                                    "You are on a single job detail page. "
+                                    "Extract fields by calling `extract_fields` ONCE, then STOP. "
+                                    "Do not navigate or click."
+                                )
+                                local_agent = VisionAgent(
+                                    api_key=GOOGLE_API_KEY,
+                                    dump_dir=args.debug_dump_dir,
+                                    fields_to_extract=fields_mask
+                                )
+                                local_agent.reset()
+                                local_agent.seed_with_goal_and_screenshot(goal, shot)
+                                resp = local_agent.ask()
+                                fields: Dict[str, Any] = {}
+                                if has_function_calls(resp):
+                                    cand = resp.candidates[0]
+                                    # Execute only what the model asks (usually just extract_fields)
+                                    _results, extracts = execute_function_calls(
+                                        cand, browser.page, debug=args.verbose, dump_dir=args.debug_dump_dir
+                                    )
+                                    if extracts:
+                                        fields = extracts[0]
+                                return fields
+
+                            decision = router.check_or_escalate(
+                                url=apply_url,
+                                screenshot_bytes=shot,
+                                on_need_gemini=_extract_with_gemini
+                            )
+                            status = decision.get("status")
+                            fields = decision.get("fields") or {}
+                            changed = bool(decision.get("changed"))
+
+                            if status == "skipped":
+                                # screenshot identical; just bump lastSeen
+                                writer.mark_seen_by_apply_url(apply_url, active=True)
+                                writer.write()
+                                continue
+
+                            if status in {"paddle", "azure"} and not changed:
+                                # Cheap OCR confirmed "no important change" → mark seen
+                                writer.mark_seen_by_apply_url(apply_url, active=True)
+                                writer.write()
+                                continue
+
+                            # status == "gemini" (or changed with OCR): try to update fields; fall back to mark_seen
+                            updated = False
+                            if fields:
+                                try:
+                                    # If you added the helper we discussed, use it; otherwise the except keeps it safe.  :contentReference[oaicite:4]{index=4}
+                                    if hasattr(writer, "update_fields_by_apply_url"):
+                                        updated = writer.update_fields_by_apply_url(apply_url, fields)
+                                except Exception as e:
+                                    logger.debug("update_fields_by_apply_url failed: %s", e)
+
+                            if not updated:
+                                writer.mark_seen_by_apply_url(apply_url, active=True)
+
+                            writer.write()
+
+                        except Exception as e:
+                            logger.exception("Rescrape error for %s: %s", apply_url, e)
+
+            finally:
+                browser.close()
+
+        # Print & persist Week‑1 counters (A/B/C) you asked for  :contentReference[oaicite:5]{index=5}
+        s = router.summary()
+        logger.info("Run summary — A) skipped(no change): %d | B) cheap OCR: %d | C) escalated to Gemini: %d",
+                    s.get("skipped_nochange", 0), s.get("used_cheap_ocr", 0), s.get("escalated_to_gemini", 0))
+        # If your Footprints class includes this helper, record the rollup; otherwise skip quietly.
+        try:
+            fp.record_run_summary(s["skipped_nochange"], s["used_cheap_ocr"], s["escalated_to_gemini"])
+        except Exception:
+            pass
+        return  # end rescrape mode
+
+    # ----------------------------
+    # DISCOVERY MODE (your existing flow)
+    #   Start from CSV career URLs, let the Computer‑Use agent navigate,
+    #   and write new Job records as before.  
+    # ----------------------------
     brain = VisionAgent(api_key=GOOGLE_API_KEY, dump_dir=args.debug_dump_dir, fields_to_extract=fields_mask)
 
     logger.info("Loading district data...")
@@ -767,7 +910,6 @@ def main():
                             company_name = district_name
                             coach_search = career_url
                             job_state = (data.get("state") or district.state or "Unknown").strip()
-
                             logger.debug(
                                 "Mapping summary: company_name=%r, coach_search_url=%r, employer_full_name=%r, employer_email=%r, district=%r, district_id=%r",
                                 company_name, coach_search, employer_full_name, employer_email, district_name, (district.district_id or "")
@@ -792,18 +934,21 @@ def main():
                                 apply_url=data.get("apply_url", browser.page.url),
                                 coach_search_url=coach_search,
                                 employer_email=employer_email,
-                                employer_full_name=employer_full_name,  # school name if present, else ""
+                                employer_full_name=employer_full_name,
                                 company_description=f"{district_name} coaching jobs",
-                                company_email="",  # left blank
-                                company_name=company_name,  # district name
-                                district=district_name,     # set 'district' (not 'district_name')
+                                company_email="",
+                                company_name=company_name,
+                                district=district_name,
                                 district_id=district.district_id or "",
                             )
 
                             if job_state not in xml_writers:
                                 output_path = f"cbnew/out/AAAAA{job_state}.xml"
                                 logger.info("Creating new XML file for state '%s': %s", job_state, output_path)
-                                xml_writers[job_state] = JobsXML(path=output_path, field_mask=set(fields_mask) | {'job_url','coach_search_url','company_name','employer_full_name','employer_email','company_description','sport', 'job_title','state'})
+                                xml_writers[job_state] = JobsXML(
+                                    path=output_path,
+                                    field_mask=set(fields_mask) | {'job_url','coach_search_url','company_name','employer_full_name','employer_email','company_description','sport','job_title','state'}
+                                )
 
                             writer = xml_writers[job_state]
                             writer.append_jobs([job_record])
@@ -814,7 +959,7 @@ def main():
                             actions_remaining = ACTION_BUDGET_START
                             logger.info("Found %d coaching job(s). Action budget reset to %d.",
                                         len(extracts), ACTION_BUDGET_START)
-
+                            
                         # Respond back to the model with function results (unchanged)
                         frs = make_function_response_parts(browser.page, results)
                         brain.append_function_responses(frs, extracts)
@@ -835,7 +980,6 @@ def main():
                         browser.close()
 
     logger.info("--- Scraping complete. Results saved to coaching_jobs_[STATE].xml files ---")
-
 
 if __name__ == "__main__":
     main()
