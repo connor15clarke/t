@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Jobs generatedAt="2025-10-24T15:05:21+00:00" schemaVersion="1.0">
-<Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="true" lastSeen="2025-11-05T19:55:33+00:00">
+<Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="false" lastSeen="2025-11-05T19:55:33+00:00">
    <JobTitle>Jumps Coach</JobTitle>
    <JobDescription>N/A</JobDescription>
    <JobType>N/A</JobType>
