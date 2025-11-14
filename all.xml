@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <Jobs generatedAt="2025-10-24T15:05:21+00:00" schemaVersion="1.0">
-<Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="false" lastSeen="2025-11-05T19:55:33+00:00">
+<Job id="e7dc4a3e-f253-4a10-9305-f4ddc820f9de" state="Colorado" district="Colorado" districtId="Colorado" active="true" lastSeen="2025-11-05T19:55:33+00:00">
    <JobTitle>Jumps Coach</JobTitle>
    <JobDescription>N/A</JobDescription>
    <JobType>N/A</JobType>
@@ -23,7 +23,7 @@
    <CompanyEmail></CompanyEmail>
    <CompanyName>Colorado</CompanyName>
 </Job>
-<Job id="651bdc71-d935-4a82-b3dd-6cf69b91c403" state="Colorado" district="Denver Public Schools" districtId="Denver Public Schools" active="false" lastSeen="2025-10-24T15:05:11+00:00">
+<Job id="651bdc71-d935-4a82-b3dd-6cf69b91c403" state="Colorado" district="Denver Public Schools" districtId="Denver Public Schools" active="true" lastSeen="2025-10-24T15:05:11+00:00">
 <JobTitle>ASSISTANT COACH, HIGH SCHOOL</JobTitle>
 <JobDescription/>
 <JobType/>
